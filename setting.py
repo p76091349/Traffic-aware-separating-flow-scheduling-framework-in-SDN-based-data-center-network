@@ -1,5 +1,3 @@
-# Copyright (C) 2021 Maiass Zaher at Budapest University 
-# of Technology and Economics, Budapest, Hungary.
 # Copyright (C) 2016 Li Cheng at Beijing University of Posts
 # and Telecommunications.
 # Copyright (C) 2016 Huang MaChi at Chongqing University
