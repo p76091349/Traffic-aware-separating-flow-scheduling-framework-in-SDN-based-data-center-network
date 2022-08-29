@@ -1,4 +1,31 @@
-
+# Copyright (C) 2021 Maiass Zaher at Budapest University 
+# of Technology and Economics, Budapest, Hungary.
+# Copyright (C) 2016 Huang MaChi at Chongqing University
+# of Posts and Telecommunications, Chongqing, China.
+# Copyright (C) 2016 Li Cheng at Beijing University of Posts
+# and Telecommunications.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+# implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+"""
+This code creates the first layer of Sieves where it resides in data plane.
+This layer contains of proactive flow entries and group buckets.
+This the data plane created as python code using mininet emulator
+where mininet uses TC (traffic control) functions provided in Linux kernel
+for emulate BW shaping, delay, loss, etc. 
+We evalute Sieve's performance over Fat tree whose size is 4.
+Mininet uses Linux containers to create light weight virtual resources like hosts.
+In addition, Mininet create OVS switches where use OVS command to create flows, groups, etc.
+"""
 from mininet.net import Mininet
 from mininet.node import Controller, RemoteController
 from mininet.cli import CLI
@@ -26,7 +53,10 @@ sys.path.insert(0, parentdir)
 import setting
 import tempfile
 import copy
-
+#parser = argparse.ArgumentParser(description="Parameters importation")
+#parser.add_argument('--k', dest='k', type=int, default=4, choices=[4, 8], help="Switch fanout number")
+#parser.add_argument('--trapat', dest='traffic_pattern', help="Traffic pattern of the experiment")
+#args = parser.parse_args()
 
 logging.config.fileConfig('logging.conf')
 logger=logging.getLogger('fileAndConsole')
@@ -202,19 +232,23 @@ def install_proactive(net, topo):
 		# Upstream.
 		# Install group entries to define ECMP scheduling using static packet header hashing.
 		if topo.pod == 4:
-                       
+                        cmd = "ovs-ofctl add-group %s -O OpenFlow13 \
+                               'group_id=1,type=select,bucket=weight:1,actions:CONTROLLER,bucket=weight:1,actions:group:2'" % sw
                         
                         #go to controller
-                        cmd = "ovs-ofctl add-group %s -O OpenFlow13 \
-                               'group_id=1,type=select,bucket=weight:1,actions:CONTROLLER'" % sw
+                        #cmd = "ovs-ofctl add-group %s -O OpenFlow13 \
+                        #       'group_id=1,type=select,bucket=weight:1,actions:CONTROLLER'" % sw
 
-                       
+                       # #ecmp
+                       # cmd = "ovs-ofctl add-group %s -O OpenFlow13 \
+                       #       'group_id=1,type=select,bucket=weight:1,actions:group:2'" % sw
                        
                         
                         cmd1 = "ovs-ofctl add-group %s -O OpenFlow13 \
                                 'group_id=2,type=select,bucket=weight:1,output:1,bucket=weight:1,output:2'" % sw
                         
-                       
+                       # cmd1 = "ovs-ofctl add-group %s -O OpenFlow13 \
+                       #         'group_id=2,type=select,bucket=weight:1,output:1'" % sw
 
                         cmd2 = "ovs-ofctl add-group %s -O OpenFlow13\
                                 'group_id=3,type=select,bucket=weight:1,output:1,bucket=weight:1,output:2'" % sw
@@ -319,7 +353,18 @@ def install_proactive(net, topo):
 				j += 1
 				k = 1
 
-
+def traffic_generation(net, topo):
+	"""
+		Start the servers on hosts and invoke the traffic generation files
+	"""
+	for k in xrange(len(topo.HostList)):
+		(net.get(topo.HostList[k])).popen("python -m SimpleHTTPServer 8000 &")
+		(net.get(topo.HostList[k])).popen("iperf -s &")
+	
+	file_tra = './OUR3/'+args.traffic_pattern
+	CLI(net, script=file_tra)
+	time.sleep(120)
+	#os.system('killall iperf')
 def UT_Test(net,topo):
     for k in xrange(len(topo.HostList)):
         #(net.get(topo.HostList[k])).popen("python -m SimpleHTTPServer 8000 &")
@@ -542,6 +587,188 @@ def my_test(net,topo):
     generate_elephant_flow()
 num_ele=0
 num_mice=0
+
+def u_my_test(net,topo):
+ # create iperf and python server
+    net.get(topo.HostList[12]).cmdPrint('iperf -s -p 40000 -u > server_report/server_report_h13 &')
+    net.get(topo.HostList[14]).cmdPrint('iperf -s -p 40000 -u > server_report/server_report_h15 &')
+    net.get(topo.HostList[15]).cmdPrint('iperf -s -p 40000 -u > server_report/server_report_h16 &')
+
+   
+    for i in xrange(0,12):
+        (net.get(topo.HostList[i])).cmdPrint('python -m SimpleHTTPServer &')
+   
+    #cmd='ovs-ofctl add-flow 3001 -O OpenFlow13 table=0,idle_timeout=2,priority=20,ip,in_port="3001-eth3",nw_src=10.1.0.1,nw_dst=10.7.0.1,actions=output:"3001-eth2"'
+    #cmd2='ovs-ofctl add-flow 3001 -O OpenFlow13 table=0,idle_timeout=2,priority=20,ip,in_port="3001-eth4",nw_src=10.1.0.2,nw_dst=10.7.0.1,actions=output:"3001-eth2"'
+    #cmd3='ovs-ofctl add-flow 3002 -O OpenFlow13 table=0,idle_timeout=2,priority=20,ip,in_port="3002-eth3",nw_src=10.2.0.1,nw_dst=10.7.0.1,actions=output:"3002-eth2"'
+    #cmd4='ovs-ofctl add-flow 3002 -O OpenFlow13 table=0,idle_timeout=2,priority=20,ip,in_port="3002-eth4",nw_src=10.2.0.2,nw_dst=10.7.0.1,actions=output:"3002-eth2"'
+    cmd='ovs-ofctl add-flow 3001 -O OpenFlow13 table=0,priority=50,ip,in_port="3001-eth3",nw_src=10.1.0.1,nw_dst=10.7.0.1,tcp,tp_src=8000,actions=output:"3001-eth1"'
+    cmd2='ovs-ofctl add-flow 3001 -O OpenFlow13 table=0,priority=50,ip,in_port="3001-eth4",nw_src=10.1.0.2,nw_dst=10.7.0.1,tcp,tp_src=8000,actions=output:"3001-eth"'
+    cmd3='ovs-ofctl add-flow 3002 -O OpenFlow13 table=0,priority=50,ip,in_port="3002-eth3",nw_src=10.2.0.1,nw_dst=10.7.0.1,tcp,tp_src=8000,actions=output:"3002-eth1"'
+    cmd4='ovs-ofctl add-flow 3002 -O OpenFlow13 table=0,priority=50,ip,in_port="3002-eth4",nw_src=10.2.0.2,nw_dst=10.7.0.1,tcp,tp_src=8000,actions=output:"3002-eth1"'
+    cmd5='ovs-ofctl add-flow 3003 -O OpenFlow13 table=0,priority=50,ip,in_port="3003-eth3",nw_src=10.3.0.1,nw_dst=10.8.0.1,tcp,tp_src=8000,actions=output:"3003-eth1"'
+    cmd6='ovs-ofctl add-flow 3003 -O OpenFlow13 table=0,priority=50,ip,in_port="3003-eth4",nw_src=10.3.0.2,nw_dst=10.8.0.1,tcp,tp_src=8000,actions=output:"3003-eth1"'
+    cmd7='ovs-ofctl add-flow 3004 -O OpenFlow13 table=0,priority=50,ip,in_port="3004-eth3",nw_src=10.4.0.1,nw_dst=10.8.0.1,tcp,tp_src=8000,actions=output:"3004-eth1"'
+    cmd8='ovs-ofctl add-flow 3004 -O OpenFlow13 table=0,priority=50,ip,in_port="3004-eth4",nw_src=10.4.0.2,nw_dst=10.8.0.1,tcp,tp_src=8000,actions=output:"3004-eth1"'
+    cmd9='ovs-ofctl add-flow 3005 -O OpenFlow13 table=0,priority=50,ip,in_port="3005-eth3",nw_src=10.5.0.1,nw_dst=10.8.0.2,tcp,tp_src=8000,actions=output:"3005-eth1"'
+    cmd10='ovs-ofctl add-flow 3005 -O OpenFlow13 table=0,priority=50,ip,in_port="3005-eth4",nw_src=10.5.0.2,nw_dst=10.8.0.2,tcp,tp_src=8000,actions=output:"3005-eth1"'
+    cmd11='ovs-ofctl add-flow 3006 -O OpenFlow13 table=0,priority=50,ip,in_port="3006-eth3",nw_src=10.6.0.1,nw_dst=10.8.0.2,tcp,tp_src=8000,actions=output:"3006-eth1"'
+    cmd12='ovs-ofctl add-flow 3006 -O OpenFlow13 table=0,priority=50,ip,in_port="3006-eth4",nw_src=10.6.0.2,nw_dst=10.8.0.2,tcp,tp_src=8000,actions=output:"3006-eth1"'
+   # cmd3='ovs-ofctl add-flow 2001 -O OpenFlow13 table=0,priority=1000,ip,in_port="2001-eth3",nw_src=10.1.0.1,nw_dst=10.8.0.1,actions=output:"2001-eth1"'
+   # #cmd='ovs-ofctl add-flow 3001 -O OpenFlow13 table=0,priority=1000,ip,in_port="3001-eth3",nw_src=10.1.0.1,nw_dst=10.8.0.1,actions=output:"3001-eth1"'
+   # #cmd2='ovs-ofctl add-flow 3001 -O OpenFlow13 table=0,priority=1000,ip,in_port="3001-eth4",nw_src=10.1.0.2,nw_dst=10.8.0.2,actions=output:"3001-eth1"'
+    #os.system(cmd)
+    #os.system(cmd2)
+    #os.system(cmd3)
+    #os.system(cmd4)
+    #os.system(cmd5)
+    #os.system(cmd6)
+    #os.system(cmd7)
+    #os.system(cmd8)
+    #os.system(cmd9)
+    #os.system(cmd10)
+    #os.system(cmd11)
+    #os.system(cmd12)
+    s=time.time()
+
+    cmd='ovs-ofctl add-flow 3001 -O OpenFlow13 table=0,priority=50,ip,in_port="3001-eth3",nw_src=10.1.0.1,nw_dst=10.7.0.1,tcp,tp_dst=40000,actions=output:"3001-eth1"'
+    cmd2='ovs-ofctl add-flow 3001 -O OpenFlow13 table=0,priority=50,ip,in_port="3001-eth4",nw_src=10.1.0.2,nw_dst=10.7.0.1,tcp,tp_dst=40000,actions=output:"3001-eth2"'
+    cmd3='ovs-ofctl add-flow 3002 -O OpenFlow13 table=0,priority=50,ip,in_port="3002-eth3",nw_src=10.2.0.1,nw_dst=10.7.0.1,tcp,tp_dst=40000,actions=output:"3002-eth1"'
+    cmd4='ovs-ofctl add-flow 3002 -O OpenFlow13 table=0,priority=50,ip,in_port="3002-eth4",nw_src=10.2.0.2,nw_dst=10.7.0.1,tcp,tp_dst=40000,actions=output:"3002-eth2"'
+    cmd5='ovs-ofctl add-flow 3003 -O OpenFlow13 table=0,priority=50,ip,in_port="3003-eth3",nw_src=10.3.0.1,nw_dst=10.8.0.1,tcp,tp_dst=40000,actions=output:"3003-eth1"'
+    cmd6='ovs-ofctl add-flow 3003 -O OpenFlow13 table=0,priority=50,ip,in_port="3003-eth4",nw_src=10.3.0.2,nw_dst=10.8.0.1,tcp,tp_dst=40000,actions=output:"3003-eth2"'
+    cmd7='ovs-ofctl add-flow 3004 -O OpenFlow13 table=0,priority=50,ip,in_port="3004-eth3",nw_src=10.4.0.1,nw_dst=10.8.0.1,tcp,tp_dst=40000,actions=output:"3004-eth1"'
+    cmd8='ovs-ofctl add-flow 3004 -O OpenFlow13 table=0,priority=50,ip,in_port="3004-eth4",nw_src=10.4.0.2,nw_dst=10.8.0.1,tcp,tp_dst=40000,actions=output:"3004-eth2"'
+    cmd9='ovs-ofctl add-flow 3005 -O OpenFlow13 table=0,priority=50,ip,in_port="3005-eth3",nw_src=10.5.0.1,nw_dst=10.8.0.2,tcp,tp_dst=40000,actions=output:"3005-eth1"'
+    cmd10='ovs-ofctl add-flow 3005 -O OpenFlow13 table=0,priority=50,ip,in_port="3005-eth4",nw_src=10.5.0.2,nw_dst=10.8.0.2,tcp,tp_dst=40000,actions=output:"3005-eth2"'
+    cmd11='ovs-ofctl add-flow 3006 -O OpenFlow13 table=0,priority=50,ip,in_port="3006-eth3",nw_src=10.6.0.1,nw_dst=10.8.0.2,tcp,tp_dst=40000,actions=output:"3006-eth1"'
+    cmd12='ovs-ofctl add-flow 3006 -O OpenFlow13 table=0,priority=50,ip,in_port="3006-eth4",nw_src=10.6.0.2,nw_dst=10.8.0.2,tcp,tp_dst=40000,actions=output:"3006-eth2"'
+
+    #os.system(cmd)
+    #os.system(cmd2)
+    #os.system(cmd3)
+    #os.system(cmd4)
+    #os.system(cmd5)
+    #os.system(cmd6)
+    #os.system(cmd7)
+    #os.system(cmd8)
+    #os.system(cmd9)
+    #os.system(cmd10)
+    #os.system(cmd11)
+    #os.system(cmd12)
+    
+    cmd='ovs-ofctl add-flow 3001 -O OpenFlow13 table=0,hard_timeout=5,priority=60,ip,in_port="3001-eth3",nw_src=10.1.0.1,nw_dst=10.7.0.1,tcp,tp_dst=40000,actions=output:"3001-eth2"'
+    cmd2='ovs-ofctl add-flow 3002 -O OpenFlow13 table=0,hard_timeout=5,priority=60,ip,in_port="3002-eth3",nw_src=10.2.0.1,nw_dst=10.7.0.1,tcp,tp_dst=40000,actions=output:"3002-eth2"'
+    cmd3='ovs-ofctl add-flow 3003 -O OpenFlow13 table=0,hard_timeout=5,priority=60,ip,in_port="3003-eth3",nw_src=10.3.0.1,nw_dst=10.8.0.1,tcp,tp_dst=40000,actions=output:"3003-eth2"'
+    cmd4='ovs-ofctl add-flow 3004 -O OpenFlow13 table=0,hard_timeout=5,priority=60,ip,in_port="3004-eth3",nw_src=10.4.0.1,nw_dst=10.8.0.1,tcp,tp_dst=40000,actions=output:"3004-eth2"'
+    cmd5='ovs-ofctl add-flow 3005 -O OpenFlow13 table=0,hard_timeout=5,priority=60,ip,in_port="3005-eth3",nw_src=10.5.0.1,nw_dst=10.8.0.2,tcp,tp_dst=40000,actions=output:"3005-eth2"'
+    cmd6='ovs-ofctl add-flow 3006 -O OpenFlow13 table=0,hard_timeout=5,priority=60,ip,in_port="3006-eth3",nw_src=10.6.0.1,nw_dst=10.8.0.2,tcp,tp_dst=40000,actions=output:"3006-eth2"'
+    cmd7='ovs-ofctl add-flow 3001 -O OpenFlow13 table=0,hard_timeout=5,priority=60,ip,in_port="3001-eth4",nw_src=10.1.0.2,nw_dst=10.7.0.1,tcp,tp_dst=40000,actions=output:"3001-eth2"'
+    cmd8='ovs-ofctl add-flow 3002 -O OpenFlow13 table=0,hard_timeout=5,priority=60,ip,in_port="3002-eth4",nw_src=10.2.0.2,nw_dst=10.7.0.1,tcp,tp_dst=40000,actions=output:"3002-eth2"'
+    cmd9='ovs-ofctl add-flow 3003 -O OpenFlow13 table=0,hard_timeout=5,priority=60,ip,in_port="3003-eth4",nw_src=10.3.0.2,nw_dst=10.8.0.1,tcp,tp_dst=40000,actions=output:"3003-eth2"'
+    cmd10='ovs-ofctl add-flow 3004 -O OpenFlow13 table=0,hard_timeout=5,priority=60,ip,in_port="3004-eth4",nw_src=10.4.0.2,nw_dst=10.8.0.1,tcp,tp_dst=40000,actions=output:"3004-eth2"'
+    cmd11='ovs-ofctl add-flow 3005 -O OpenFlow13 table=0,hard_timeout=5,priority=60,ip,in_port="3005-eth4",nw_src=10.5.0.2,nw_dst=10.8.0.2,tcp,tp_dst=40000,actions=output:"3005-eth2"'
+    cmd12='ovs-ofctl add-flow 3006 -O OpenFlow13 table=0,hard_timeout=5,priority=60,ip,in_port="3006-eth4",nw_src=10.6.0.2,nw_dst=10.8.0.2,tcp,tp_dst=40000,actions=output:"3006-eth2"'
+   
+
+    def generate_mice_flow():
+        t=4
+        j=4
+        #time.sleep(15)
+        #os.system(cmd)
+        #os.system(cmd2)
+        #os.system(cmd3)
+        #os.system(cmd4)
+
+
+
+        print('start mice thread')
+        while j > 0:
+            time.sleep(5)
+            j=j-1
+            #os.system(cmd)
+            #os.system(cmd2)
+            #os.system(cmd3)
+            #os.system(cmd4)
+            #os.system(cmd5)
+            #os.system(cmd6)
+            #os.system(cmd7)
+            #os.system(cmd8)
+            #os.system(cmd9)
+            #os.system(cmd10)
+            #os.system(cmd11)
+            #os.system(cmd12)
+
+
+            net.get(topo.HostList[12]).cmdPrint('wget 10.1.0.1:8000 -o mice_flow/mCT_h1' + '_' + str(round(time.time()-s)) + ' &')
+            net.get(topo.HostList[12]).cmdPrint('wget 10.1.0.2:8000 -o mice_flow/mCT_h2' + '_' + str(round(time.time()-s)) + ' &')
+            net.get(topo.HostList[12]).cmdPrint('wget 10.2.0.1:8000 -o mice_flow/mCT_h3' + '_' + str(round(time.time()-s)) + ' &')
+            net.get(topo.HostList[12]).cmdPrint('wget 10.2.0.2:8000 -o mice_flow/mCT_h4' + '_' + str(round(time.time()-s)) + ' &')
+            net.get(topo.HostList[14]).cmdPrint('wget 10.3.0.1:8000 -o mice_flow/mCT_h5' + '_' + str(round(time.time()-s)) + ' &')
+            net.get(topo.HostList[14]).cmdPrint('wget 10.3.0.2:8000 -o mice_flow/mCT_h6' + '_' + str(round(time.time()-s)) + ' &')
+            net.get(topo.HostList[14]).cmdPrint('wget 10.4.0.1:8000 -o mice_flow/mCT_h7' + '_' + str(round(time.time()-s)) + ' &')
+            net.get(topo.HostList[14]).cmdPrint('wget 10.4.0.2:8000 -o mice_flow/mCT_h8' + '_' + str(round(time.time()-s)) + ' &')
+            net.get(topo.HostList[15]).cmdPrint('wget 10.5.0.1:8000 -o mice_flow/mCT_h9' + '_' + str(round(time.time()-s)) + ' &')
+            net.get(topo.HostList[15]).cmdPrint('wget 10.5.0.2:8000 -o mice_flow/mCT_h10' + '_' + str(round(time.time()-s)) + ' &')
+            net.get(topo.HostList[15]).cmdPrint('wget 10.6.0.1:8000 -o mice_flow/mCT_h11' + '_' + str(round(time.time()-s)) + ' &')
+            net.get(topo.HostList[15]).cmdPrint('wget 10.6.0.2:8000 -o mice_flow/mCT_h12' + '_' + str(round(time.time()-s)) + ' &')
+
+        #while t > 0:
+        #net.get(topo.HostList[1]).cmdPrint('iperf -c 10.8.0.2 -n 200000 -l 200000 > h2_report_'+ str(round(time.time()-s)) + ' &')
+        #net.get(topo.HostList[1]).cmdPrint('iperf -c 10.8.0.2 -n 300000 > h2_report_'+ str(round(time.time()-s)) + ' &')
+        #net.get(topo.HostList[1]).cmdPrint('iperf -c 10.8.0.2 -n 500000 > h2_report_'+ str(round(time.time()-s)) + ' &')
+
+                #t=t-1
+   # mice_thread=threading.Thread(target=generate_mice_flow)
+   # mice_thread.start() 
+   # net.get(topo.HostList[0]).cmdPrint('iperf -c 10.8.0.1 -t 40 > h1_report &')
+   # net.get(topo.HostList[1]).cmdPrint('iperf -c 10.8.0.1 -t 40 > h2_report &')
+   # net.get(topo.HostList[2]).cmdPrint('iperf -c 10.8.0.1 -t 40 > h3_report &')
+   # net.get(topo.HostList[3]).cmdPrint('iperf -c 10.8.0.1 -t 40 > h4_report &')
+    def generate_elephant_flow():
+        print('start ele thread')
+        while time.time() - s < 300:
+            net.get(topo.HostList[0]).cmdPrint('iperf -c 10.7.0.1 -t 40 -p 40000 -i 1 -u > h1_report_'+ str(round(time.time()-s)) + ' &' )
+            net.get(topo.HostList[0]).cmdPrint('iperf -c 10.7.0.1 -t 40 -p 40000 -i 1 -u > h1_report_'+ str(round(time.time()-s)) + ' &' )
+
+            net.get(topo.HostList[1]).cmdPrint('iperf -c 10.7.0.1 -t 40 -p 40000 -i 1 -u > h2_report_'+ str(round(time.time()-s)) + ' &' )
+            net.get(topo.HostList[1]).cmdPrint('iperf -c 10.7.0.1 -t 40 -p 40000 -i 1 -u > h2_report_'+ str(round(time.time()-s)) + ' &' )           
+            net.get(topo.HostList[2]).cmdPrint('iperf -c 10.7.0.1 -t 40 -p 40000 -i 1 -u > h3_report_'+ str(round(time.time()-s)) + ' &' )
+            net.get(topo.HostList[2]).cmdPrint('iperf -c 10.7.0.1 -t 40 -p 40000 -i 1 -u > h3_report_'+ str(round(time.time()-s)) + ' &' )
+            net.get(topo.HostList[3]).cmdPrint('iperf -c 10.7.0.1 -t 40 -p 40000 -i 1 -u > h4_report_'+ str(round(time.time()-s)) + ' &' )
+            net.get(topo.HostList[3]).cmdPrint('iperf -c 10.7.0.1 -t 40 -p 40000 -i 1 -u > h4_report_'+ str(round(time.time()-s)) + ' &' )
+            net.get(topo.HostList[4]).cmdPrint('iperf -c 10.8.0.1 -t 40 -p 40000 -i 1 -u > h5_report_'+ str(round(time.time()-s)) + ' &' )
+            net.get(topo.HostList[4]).cmdPrint('iperf -c 10.8.0.1 -t 40 -p 40000 -i 1 -u > h5_report_'+ str(round(time.time()-s)) + ' &' )
+            net.get(topo.HostList[5]).cmdPrint('iperf -c 10.8.0.1 -t 40 -p 40000 -i 1 -u > h6_report_'+ str(round(time.time()-s)) + ' &' )
+            net.get(topo.HostList[5]).cmdPrint('iperf -c 10.8.0.1 -t 40 -p 40000 -i 1 -u > h6_report_'+ str(round(time.time()-s)) + ' &' )
+            net.get(topo.HostList[6]).cmdPrint('iperf -c 10.8.0.1 -t 40 -p 40000 -i 1 -u > h7_report_'+ str(round(time.time()-s)) + ' &' )
+            net.get(topo.HostList[6]).cmdPrint('iperf -c 10.8.0.1 -t 40 -p 40000 -i 1 -u > h7_report_'+ str(round(time.time()-s)) + ' &' )
+            net.get(topo.HostList[7]).cmdPrint('iperf -c 10.8.0.1 -t 40 -p 40000 -i 1 -u > h8_report_'+ str(round(time.time()-s)) + ' &' )
+            net.get(topo.HostList[7]).cmdPrint('iperf -c 10.8.0.1 -t 40 -p 40000 -i 1 -u > h8_report_'+ str(round(time.time()-s)) + ' &' )
+            net.get(topo.HostList[8]).cmdPrint('iperf -c 10.8.0.2 -t 40 -p 40000 -i 1 -u > h9_report_'+ str(round(time.time()-s)) + ' &' )
+            net.get(topo.HostList[8]).cmdPrint('iperf -c 10.8.0.2 -t 40 -p 40000 -i 1 -u > h9_report_'+ str(round(time.time()-s)) + ' &' )
+            net.get(topo.HostList[9]).cmdPrint('iperf -c 10.8.0.2 -t 40 -p 40000 -i 1 -u > h10_report_'+ str(round(time.time()-s)) + ' &' )
+            net.get(topo.HostList[9]).cmdPrint('iperf -c 10.8.0.2 -t 40 -p 40000 -i 1 -u > h10_report_'+ str(round(time.time()-s)) + ' &' )
+            net.get(topo.HostList[10]).cmdPrint('iperf -c 10.8.0.2 -t 40 -p 40000 -i 1 -u > h11_report_'+ str(round(time.time()-s)) + ' &' )
+            net.get(topo.HostList[10]).cmdPrint('iperf -c 10.8.0.2 -t 40 -p 40000 -i 1 -u > h11_report_'+ str(round(time.time()-s)) + ' &' )
+            net.get(topo.HostList[11]).cmdPrint('iperf -c 10.8.0.2 -t 40 -p 40000 -i 1 -u > h12_report_'+ str(round(time.time()-s)) + ' &' )
+            net.get(topo.HostList[11]).cmdPrint('iperf -c 10.8.0.2 -t 40 -p 40000 -i 1 -u > h12_report_'+ str(round(time.time()-s)) + ' &' )
+            
+            #t=threading.Thread(target=generate_mice_flow)
+
+            generate_mice_flow()
+            
+            #if time.time()-s > 250:
+            #    s_time=1
+            #else:
+            #    s_time=60
+                
+            #time.sleep(5)
+    
+    generate_elephant_flow()
+num_ele=0
+num_mice=0
+
 def my_test2(net,topo):
  # create iperf and python server
     collect_mice_time=[]
@@ -1094,6 +1321,122 @@ def my_test2(net,topo):
     data4.update({"Sheet 1": [collect_ele_time]})
     save_data("ele time.ods",data4)
 
+def u_my_test2(net,topo):
+ # create iperf and python server
+    collect_mice_time=[]
+    collect_ele_num=[]
+    collect_mice_num=[]
+    collect_ele_time=[]
+
+    for i in xrange(0,16):
+        net.get(topo.HostList[i]).cmdPrint('iperf -s -p 40000 -u > server_report/server_report_h' + str(i+1) + ' &')
+
+   
+    for i in xrange(0,16):
+        (net.get(topo.HostList[i])).cmdPrint('python -m SimpleHTTPServer &')
+   
+    s=time.time()
+
+   
+    def generate_mice_flow(ele_time):
+        t=4
+        j=4
+
+
+
+        print('start mice thread')
+
+        while j > 0:
+            global num_mice
+            global num_ele
+            time.sleep(4)
+            j=j-1
+ 
+
+            net.get(topo.HostList[4]).cmdPrint('wget 10.5.0.1:8000 -o mice_flow/mCT_h1' + '_' + str(round(time.time()-s)) + ' &')
+           
+
+            net.get(topo.HostList[5]).cmdPrint('wget 10.5.0.2:8000 -o mice_flow/mCT_h2' + '_' + str(round(time.time()-s)) + ' &')
+            net.get(topo.HostList[6]).cmdPrint('wget 10.6.0.1:8000 -o mice_flow/mCT_h3' + '_' + str(round(time.time()-s)) + ' &')
+            net.get(topo.HostList[7]).cmdPrint('wget 10.6.0.2:8000 -o mice_flow/mCT_h4' + '_' + str(round(time.time()-s)) + ' &')
+            net.get(topo.HostList[8]).cmdPrint('wget 10.7.0.1:8000 -o mice_flow/mCT_h5' + '_' + str(round(time.time()-s)) + ' &')
+            net.get(topo.HostList[9]).cmdPrint('wget 10.7.0.2:8000 -o mice_flow/mCT_h6' + '_' + str(round(time.time()-s)) + ' &')
+            net.get(topo.HostList[10]).cmdPrint('wget 10.8.0.1:8000 -o mice_flow/mCT_h7' + '_' + str(round(time.time()-s)) + ' &')
+            net.get(topo.HostList[11]).cmdPrint('wget 10.8.0.2:8000 -o mice_flow/mCT_h8' + '_' + str(round(time.time()-s)) + ' &')
+            net.get(topo.HostList[12]).cmdPrint('wget 10.1.0.1:8000 -o mice_flow/mCT_h9' + '_' + str(round(time.time()-s)) + ' &')
+            net.get(topo.HostList[13]).cmdPrint('wget 10.1.0.2:8000 -o mice_flow/mCT_h10' + '_' + str(round(time.time()-s)) + ' &')
+            net.get(topo.HostList[14]).cmdPrint('wget 10.2.0.1:8000 -o mice_flow/mCT_h11' + '_' + str(round(time.time()-s)) + ' &')
+            net.get(topo.HostList[15]).cmdPrint('wget 10.2.0.2:8000 -o mice_flow/mCT_h12' + '_' + str(round(time.time()-s)) + ' &')
+            net.get(topo.HostList[0]).cmdPrint('wget 10.3.0.1:8000 -o mice_flow/mCT_h13' + '_' + str(round(time.time()-s)) + ' &')
+            net.get(topo.HostList[1]).cmdPrint('wget 10.3.0.2:8000 -o mice_flow/mCT_h14' + '_' + str(round(time.time()-s)) + ' &')
+            net.get(topo.HostList[2]).cmdPrint('wget 10.4.0.1:8000 -o mice_flow/mCT_h15' + '_' + str(round(time.time()-s)) + ' &')
+            net.get(topo.HostList[3]).cmdPrint('wget 10.4.0.2:8000 -o mice_flow/mCT_h16' + '_' + str(round(time.time()-s)) + ' &')
+    def generate_elephant_flow():
+        global num_ele
+        while time.time() - s < 300:
+            logger.info('generate elephant flow')
+            net.get(topo.HostList[0]).cmdPrint('iperf -c 10.3.0.1 -t 40 -p 40000 -i 1 -u > h1_report_'+ str(round(time.time()-s)) + ' &' )
+            net.get(topo.HostList[0]).cmdPrint('iperf -c 10.3.0.1 -t 40 -p 40000 -i 1 -u > h1_report_'+ str(round(time.time()-s)) + ' &' )
+
+
+
+            net.get(topo.HostList[1]).cmdPrint('iperf -c 10.3.0.2 -t 40 -p 40000 -i 1 -u > h2_report_'+ str(round(time.time()-s)) + ' &' )
+            #net.get(topo.HostList[1]).cmdPrint('iperf -c 10.3.0.2 -t 40 -p 40000 -i 1 -u > h2_report_'+ str(round(time.time()-s)) + ' &' )
+
+
+            net.get(topo.HostList[2]).cmdPrint('iperf -c 10.4.0.1 -t 40 -p 40000 -i 1 -u > h3_report_'+ str(round(time.time()-s)) + ' &' )
+            net.get(topo.HostList[2]).cmdPrint('iperf -c 10.4.0.1 -t 40 -p 40000 -i 1 -u > h3_report_'+ str(round(time.time()-s)) + ' &' )
+
+
+            net.get(topo.HostList[3]).cmdPrint('iperf -c 10.4.0.2 -t 40 -p 40000 -i 1 -u > h4_report_'+ str(round(time.time()-s)) + ' &' )
+            net.get(topo.HostList[3]).cmdPrint('iperf -c 10.4.0.2 -t 40 -p 40000 -i 1 -u > h4_report_'+ str(round(time.time()-s)) + ' &' )
+            net.get(topo.HostList[4]).cmdPrint('iperf -c 10.5.0.1 -t 40 -p 40000 -i 1 -u > h5_report_'+ str(round(time.time()-s)) + ' &' )
+            net.get(topo.HostList[4]).cmdPrint('iperf -c 10.5.0.1 -t 40 -p 40000 -i 1 -u > h5_report_'+ str(round(time.time()-s)) + ' &' )
+
+
+            net.get(topo.HostList[5]).cmdPrint('iperf -c 10.5.0.2 -t 40 -p 40000 -i 1 -u > h6_report_'+ str(round(time.time()-s)) + ' &' )
+            net.get(topo.HostList[5]).cmdPrint('iperf -c 10.5.0.2 -t 40 -p 40000 -i 1 -u > h6_report_'+ str(round(time.time()-s)) + ' &' )
+            net.get(topo.HostList[6]).cmdPrint('iperf -c 10.6.0.1 -t 40 -p 40000 -i 1 -u > h7_report_'+ str(round(time.time()-s)) + ' &' )
+            net.get(topo.HostList[6]).cmdPrint('iperf -c 10.6.0.1 -t 40 -p 40000 -i 1 -u > h7_report_'+ str(round(time.time()-s)) + ' &' )
+
+
+            net.get(topo.HostList[7]).cmdPrint('iperf -c 10.6.0.2 -t 40 -p 40000 -i 1 -u > h8_report_'+ str(round(time.time()-s)) + ' &' )
+            net.get(topo.HostList[7]).cmdPrint('iperf -c 10.6.0.2 -t 40 -p 40000 -i 1 -u > h8_report_'+ str(round(time.time()-s)) + ' &' )
+            
+            net.get(topo.HostList[8]).cmdPrint('iperf -c 10.7.0.1 -t 40 -p 40000 -i 1 -u > h9_report_'+ str(round(time.time()-s)) + ' &' )
+            net.get(topo.HostList[8]).cmdPrint('iperf -c 10.7.0.1 -t 40 -p 40000 -i 1 -u > h9_report_'+ str(round(time.time()-s)) + ' &' )
+
+
+            net.get(topo.HostList[9]).cmdPrint('iperf -c 10.7.0.2 -t 40 -p 40000 -i 1 -u > h10_report_'+ str(round(time.time()-s)) + ' &' )
+            net.get(topo.HostList[9]).cmdPrint('iperf -c 10.7.0.2 -t 40 -p 40000 -i 1 -u > h10_report_'+ str(round(time.time()-s)) + ' &' )
+            
+            net.get(topo.HostList[10]).cmdPrint('iperf -c 10.8.0.1 -t 40 -p 40000 -i 1 -u > h11_report_'+ str(round(time.time()-s)) + ' &' )
+            net.get(topo.HostList[10]).cmdPrint('iperf -c 10.8.0.1 -t 40 -p 40000 -i 1 -u > h11_report_'+ str(round(time.time()-s)) + ' &' )
+
+
+            net.get(topo.HostList[11]).cmdPrint('iperf -c 10.8.0.2 -t 40 -p 40000 -i 1 -u > h12_report_'+ str(round(time.time()-s)) + ' &' )
+            net.get(topo.HostList[11]).cmdPrint('iperf -c 10.8.0.2 -t 40 -p 40000 -i 1 -u > h12_report_'+ str(round(time.time()-s)) + ' &' )
+            
+            net.get(topo.HostList[12]).cmdPrint('iperf -c 10.1.0.1 -t 40 -p 40000 -i 1 -u > h12_report_'+ str(round(time.time()-s)) + ' &' )
+            net.get(topo.HostList[12]).cmdPrint('iperf -c 10.1.0.1 -t 40 -p 40000 -i 1 -u > h12_report_'+ str(round(time.time()-s)) + ' &' )
+
+
+            net.get(topo.HostList[13]).cmdPrint('iperf -c 10.1.0.2 -t 40 -p 40000 -i 1 -u > h12_report_'+ str(round(time.time()-s)) + ' &' )
+            net.get(topo.HostList[13]).cmdPrint('iperf -c 10.1.0.2 -t 40 -p 40000 -i 1 -u > h12_report_'+ str(round(time.time()-s)) + ' &' )
+            
+            net.get(topo.HostList[14]).cmdPrint('iperf -c 10.2.0.1 -t 40 -p 40000 -i 1 -u > h12_report_'+ str(round(time.time()-s)) + ' &' )
+            net.get(topo.HostList[14]).cmdPrint('iperf -c 10.2.0.1 -t 40 -p 40000 -i 1 -u > h12_report_'+ str(round(time.time()-s)) + ' &' )
+
+
+            net.get(topo.HostList[15]).cmdPrint('iperf -c 10.2.0.2 -t 40 -p 40000 -i 1 -u > h12_report_'+ str(round(time.time()-s)) + ' &' )
+            net.get(topo.HostList[15]).cmdPrint('iperf -c 10.2.0.2 -t 40 -p 40000 -i 1 -u > h12_report_'+ str(round(time.time()-s)) + ' &' )
+           
+            generate_mice_flow(round(time.time()-s))
+            #time.sleep(25)
+     
+    generate_elephant_flow()
+
+
 def my_test3(net,topo):
  # create iperf and python server
     for i in xrange(0,16):
@@ -1332,20 +1675,75 @@ def md_test(net,topo):
             net.get(topo.HostList[13]).cmdPrint('wget 10.1.0.2:8000 -o mice_flow/mCT_h14' + '_' + str(round(time.time()-s)) + ' &')
     def generate_elephant():
         while time.time() -s < 300:
-            net.get(topo.HostList[0]).cmdPrint('iperf -c 10.3.0.1 -t 40 -p 40000 -i 1 > h1_report_'+ str(round(time.time()-s)) + ' &' )
-            net.get(topo.HostList[0]).cmdPrint('iperf -c 10.4.0.1 -t 40 -p 40000 -i 1 > h1_report_'+ str(round(time.time()-s)) + ' &' )
-            net.get(topo.HostList[0]).cmdPrint('iperf -c 10.5.0.1 -t 40 -p 40000 -i 1 > h1_report_'+ str(round(time.time()-s)) + ' &' )
-            net.get(topo.HostList[0]).cmdPrint('iperf -c 10.6.0.1 -t 40 -p 40000 -i 1 > h1_report_'+ str(round(time.time()-s)) + ' &' )
-            net.get(topo.HostList[0]).cmdPrint('iperf -c 10.7.0.1 -t 40 -p 40000 -i 1 > h1_report_'+ str(round(time.time()-s)) + ' &' )
-            net.get(topo.HostList[1]).cmdPrint('iperf -c 10.8.0.1 -t 40 -p 40000 -i 1 > h1_report_'+ str(round(time.time()-s)) + ' &' )
-            net.get(topo.HostList[1]).cmdPrint('iperf -c 10.3.0.2 -t 40 -p 40000 -i 1 > h1_report_'+ str(round(time.time()-s)) + ' &' )
-            net.get(topo.HostList[1]).cmdPrint('iperf -c 10.4.0.2 -t 40 -p 40000 -i 1 > h1_report_'+ str(round(time.time()-s)) + ' &' )
-            net.get(topo.HostList[1]).cmdPrint('iperf -c 10.6.0.2 -t 40 -p 40000 -i 1 > h1_report_'+ str(round(time.time()-s)) + ' &' )
-            net.get(topo.HostList[1]).cmdPrint('iperf -c 10.7.0.2 -t 40 -p 40000 -i 1 > h1_report_'+ str(round(time.time()-s)) + ' &' )
+            net.get(topo.HostList[0]).cmdPrint('iperf -c 10.3.0.1 -t 40 -p 40000 > h1_report_h5'+ str(round(time.time()-s)) + ' &' )
+            net.get(topo.HostList[0]).cmdPrint('iperf -c 10.4.0.1 -t 40 -p 40000 > h1_report_h7'+ str(round(time.time()-s)) + ' &' )
+            net.get(topo.HostList[0]).cmdPrint('iperf -c 10.5.0.1 -t 40 -p 40000 > h1_report_h9'+ str(round(time.time()-s)) + ' &' )
+            net.get(topo.HostList[0]).cmdPrint('iperf -c 10.6.0.1 -t 40 -p 40000 > h1_report_h11'+ str(round(time.time()-s)) + ' &' )
+            net.get(topo.HostList[0]).cmdPrint('iperf -c 10.7.0.1 -t 40 -p 40000 > h1_report_h13'+ str(round(time.time()-s)) + ' &' )
+            net.get(topo.HostList[1]).cmdPrint('iperf -c 10.8.0.1 -t 40 -p 40000 > h2_report_h15'+ str(round(time.time()-s)) + ' &' )
+            net.get(topo.HostList[1]).cmdPrint('iperf -c 10.3.0.2 -t 40 -p 40000 > h2_report_h6'+ str(round(time.time()-s)) + ' &' )
+            net.get(topo.HostList[1]).cmdPrint('iperf -c 10.4.0.2 -t 40 -p 40000 > h2_report_h8'+ str(round(time.time()-s)) + ' &' )
+            net.get(topo.HostList[1]).cmdPrint('iperf -c 10.6.0.2 -t 40 -p 40000 > h2_report_h12'+ str(round(time.time()-s)) + ' &' )
+            net.get(topo.HostList[1]).cmdPrint('iperf -c 10.7.0.2 -t 40 -p 40000 > h2_report_h14'+ str(round(time.time()-s)) + ' &' )
             
             generate_mice()
             time.sleep(25)
     generate_elephant()
+def u_md_test(net,topo):
+    s=time.time()
+    for i in xrange(0,16):
+        if i == 2 or i == 3 or i == 9 or i == 15:
+            pass
+        net.get(topo.HostList[i]).cmdPrint('iperf -s -p 40000 -u > server_report/server_report_h' + str(i+1) + ' &')
+
+
+    for i in xrange(0,16):
+        (net.get(topo.HostList[i])).cmdPrint('python -m SimpleHTTPServer &')
+
+    
+    def generate_mice():
+        j=4
+
+        while j>0:
+            time.sleep(5)
+            j=j-1
+            net.get(topo.HostList[4]).cmdPrint('wget 10.1.0.1:8000 -o mice_flow/mCT_h5' + '_' + str(round(time.time()-s)) + ' &')
+            net.get(topo.HostList[6]).cmdPrint('wget 10.1.0.1:8000 -o mice_flow/mCT_h7' + '_' + str(round(time.time()-s)) + ' &')
+            net.get(topo.HostList[8]).cmdPrint('wget 10.1.0.1:8000 -o mice_flow/mCT_h9' + '_' + str(round(time.time()-s)) + ' &')
+            net.get(topo.HostList[10]).cmdPrint('wget 10.1.0.1:8000 -o mice_flow/mCT_h11' + '_' + str(round(time.time()-s)) + ' &')
+            net.get(topo.HostList[12]).cmdPrint('wget 10.1.0.1:8000 -o mice_flow/mCT_h13' + '_' + str(round(time.time()-s)) + ' &')
+            net.get(topo.HostList[14]).cmdPrint('wget 10.1.0.2:8000 -o mice_flow/mCT_h15' + '_' + str(round(time.time()-s)) + ' &')
+            net.get(topo.HostList[5]).cmdPrint('wget 10.1.0.2:8000 -o mice_flow/mCT_h6' + '_' + str(round(time.time()-s)) + ' &')
+            net.get(topo.HostList[7]).cmdPrint('wget 10.1.0.2:8000 -o mice_flow/mCT_h8' + '_' + str(round(time.time()-s)) + ' &')
+            net.get(topo.HostList[11]).cmdPrint('wget 10.1.0.2:8000 -o mice_flow/mCT_h12' + '_' + str(round(time.time()-s)) + ' &')
+            net.get(topo.HostList[13]).cmdPrint('wget 10.1.0.2:8000 -o mice_flow/mCT_h14' + '_' + str(round(time.time()-s)) + ' &')
+    def generate_elephant():
+        while time.time() -s < 300:
+            net.get(topo.HostList[0]).cmdPrint('iperf -c 10.3.0.1 -t 40 -p 40000 -u > h1_report_h5'+ str(round(time.time()-s)) + ' &' )
+            net.get(topo.HostList[0]).cmdPrint('iperf -c 10.3.0.1 -t 40 -p 40000 -u > h1_report_h5'+ str(round(time.time()-s)) + ' &' )
+            net.get(topo.HostList[0]).cmdPrint('iperf -c 10.4.0.1 -t 40 -p 40000 -u > h1_report_h7'+ str(round(time.time()-s)) + ' &' )
+            net.get(topo.HostList[0]).cmdPrint('iperf -c 10.4.0.1 -t 40 -p 40000 -u > h1_report_h7'+ str(round(time.time()-s)) + ' &' )
+            net.get(topo.HostList[0]).cmdPrint('iperf -c 10.5.0.1 -t 40 -p 40000 -u > h1_report_h9'+ str(round(time.time()-s)) + ' &' )
+            net.get(topo.HostList[0]).cmdPrint('iperf -c 10.5.0.1 -t 40 -p 40000 -u > h1_report_h9'+ str(round(time.time()-s)) + ' &' )
+            net.get(topo.HostList[0]).cmdPrint('iperf -c 10.6.0.1 -t 40 -p 40000 -u > h1_report_h11'+ str(round(time.time()-s)) + ' &' )
+            net.get(topo.HostList[0]).cmdPrint('iperf -c 10.6.0.1 -t 40 -p 40000 -u > h1_report_h11'+ str(round(time.time()-s)) + ' &' )
+            net.get(topo.HostList[0]).cmdPrint('iperf -c 10.7.0.1 -t 40 -p 40000 -u > h1_report_h13'+ str(round(time.time()-s)) + ' &' )
+            net.get(topo.HostList[0]).cmdPrint('iperf -c 10.7.0.1 -t 40 -p 40000 -u > h1_report_h13'+ str(round(time.time()-s)) + ' &' )
+            net.get(topo.HostList[1]).cmdPrint('iperf -c 10.8.0.1 -t 40 -p 40000 -u > h2_report_h15'+ str(round(time.time()-s)) + ' &' )
+            net.get(topo.HostList[1]).cmdPrint('iperf -c 10.8.0.1 -t 40 -p 40000 -u > h2_report_h15'+ str(round(time.time()-s)) + ' &' )
+            net.get(topo.HostList[1]).cmdPrint('iperf -c 10.3.0.2 -t 40 -p 40000 -u > h2_report_h6'+ str(round(time.time()-s)) + ' &' )
+            net.get(topo.HostList[1]).cmdPrint('iperf -c 10.3.0.2 -t 40 -p 40000 -u > h2_report_h6'+ str(round(time.time()-s)) + ' &' )
+            net.get(topo.HostList[1]).cmdPrint('iperf -c 10.4.0.2 -t 40 -p 40000 -u > h2_report_h8'+ str(round(time.time()-s)) + ' &' )
+            net.get(topo.HostList[1]).cmdPrint('iperf -c 10.4.0.2 -t 40 -p 40000 -u > h2_report_h8'+ str(round(time.time()-s)) + ' &' )
+            net.get(topo.HostList[1]).cmdPrint('iperf -c 10.6.0.2 -t 40 -p 40000 -u > h2_report_h12'+ str(round(time.time()-s)) + ' &' )
+            net.get(topo.HostList[1]).cmdPrint('iperf -c 10.6.0.2 -t 40 -p 40000 -u > h2_report_h12'+ str(round(time.time()-s)) + ' &' )
+            net.get(topo.HostList[1]).cmdPrint('iperf -c 10.7.0.2 -t 40 -p 40000 -u > h2_report_h14'+ str(round(time.time()-s)) + ' &' )
+            net.get(topo.HostList[1]).cmdPrint('iperf -c 10.7.0.2 -t 40 -p 40000 -u > h2_report_h14'+ str(round(time.time()-s)) + ' &' )
+            
+            generate_mice()
+            #time.sleep(25)
+    generate_elephant()
+
 
 def CT_Test(net,topo):
     h001,h002,h003,h005,h007,h009,h011,h013,h014,h015,h016=net.get(topo.HostList[0],topo.HostList[1],topo.HostList[2],topo.HostList[4],topo.HostList[6],topo.HostList[8],topo.HostList[10],topo.HostList[12],topo.HostList[13],topo.HostList[14],topo.HostList[15])
@@ -1502,8 +1900,13 @@ def CT_Test(net,topo):
     #    h002.cmdPrint('iperf -c ' +(net.get(topo.HostList[i])).IP() +' -t 10 -i 1')
 
 
-def run_experiment(pod, density, ip="127.0.0.1", port=6653, bw_c2a=20, bw_a2e=20, bw_e2h=20):
-	
+def run_experiment(pod, density, ip="127.0.0.1", port=6653, bw_c2a=10, bw_a2e=10, bw_e2h=10):
+	"""
+		Create the network topology. Then, define the connection with the remote controller.
+		Install the proactive flow entries, set IPs and OF version.
+		Finally, run the Sieve as a module inside RYU controller, and wait until it discovers the network,
+		then, we generate different traffic patterns based on command line arguments passed.
+	"""
 	# Create Topo.
 	topo = Fattree(pod, density)
 	topo.createNodes()
@@ -1538,8 +1941,9 @@ def run_experiment(pod, density, ip="127.0.0.1", port=6653, bw_c2a=20, bw_a2e=20
         #UT_Test(net,topo)
         #CT_Test(net,topo)
         #test(net,topo)
-        #my_test2(net,topo)
-        md_test(net,topo)
+        u_my_test2(net,topo)
+        #u_my_test(net,topo)
+        #u_md_test(net,topo)
         CLI(net)
 	#os.killpg(Controller_Ryu.pid, signal.SIGKILL)
 	# Stop Mininet.
