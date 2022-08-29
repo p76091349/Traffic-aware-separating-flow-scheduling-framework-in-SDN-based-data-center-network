@@ -1,5 +1,4 @@
-# Copyright (C) 2021 Maiass Zaher at Budapest University 
-# of Technology and Economics, Budapest, Hungary.
+
 # Copyright (C) 2016 Huang MaChi at Chongqing University
 # of Posts and Telecommunications, Chongqing, China.
 # Copyright (C) 2016 Li Cheng at Beijing University of Posts
@@ -16,16 +15,7 @@
 # implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""
-This code creates the first layer of Sieves where it resides in data plane.
-This layer contains of proactive flow entries and group buckets.
-This the data plane created as python code using mininet emulator
-where mininet uses TC (traffic control) functions provided in Linux kernel
-for emulate BW shaping, delay, loss, etc. 
-We evalute Sieve's performance over Fat tree whose size is 4.
-Mininet uses Linux containers to create light weight virtual resources like hosts.
-In addition, Mininet create OVS switches where use OVS command to create flows, groups, etc.
-"""
+
 from mininet.net import Mininet
 from mininet.node import Controller, RemoteController
 from mininet.cli import CLI
