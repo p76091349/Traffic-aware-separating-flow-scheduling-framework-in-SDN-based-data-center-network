@@ -1,0 +1,25 @@
+--2022-08-12 13:49:01--  http://10.1.0.2:8000/
+Connecting to 10.1.0.2:8000... connected.
+HTTP request sent, awaiting response... Read error (Connection reset by peer) in headers.
+Retrying.
+
+--2022-08-12 13:49:04--  (try: 2)  http://10.1.0.2:8000/
+Connecting to 10.1.0.2:8000... connected.
+HTTP request sent, awaiting response... Read error (Connection reset by peer) in headers.
+Retrying.
+
+--2022-08-12 13:49:18--  (try: 3)  http://10.1.0.2:8000/
+Connecting to 10.1.0.2:8000... connected.
+HTTP request sent, awaiting response... Read error (Connection reset by peer) in headers.
+Retrying.
+
+--2022-08-12 13:49:24--  (try: 4)  http://10.1.0.2:8000/
+Connecting to 10.1.0.2:8000... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: 11326 (11K) [text/html]
+Saving to: ‘index.html.34.8’
+
+     0K .......... .                                          100%  526 =22s
+
+2022-08-12 13:49:49 (526 B/s) - ‘index.html.34.8’ saved [11326/11326]
+

@@ -1,3 +1,29 @@
+# Copyright (C) 2021 Maiass Zaher at Budapest University 
+# of Technology and Economics, Budapest, Hungary.
+# Copyright (C) 2016 Huang MaChi at Chongqing University
+# of Posts and Telecommunications, Chongqing, China.
+# Copyright (C) 2016 Li Cheng at Beijing University of Posts
+# and Telecommunications.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+# implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+"""
+This module represents the second layer of Sieve framework. 
+It receives the packet-in messages from datapaths in data
+plane and schedule them based on max BW shortest paths.
+This layer provides its functions regardless of the flows size
+,i.e., no difference in case of mice (small) and elephant (large) flows.
+"""
+
 from ryu import cfg
 from ryu.base import app_manager
 from ryu.controller import ofp_event
@@ -182,33 +208,56 @@ class ShortestForwarding(app_manager.RyuApp):
 			get the shortest paths between src and dst either based on hop counts
 			using the networkx generator, where the network topology is represented as a
 			graph or based on the available BW on links.
-			we choice 2 shortest paths between a src and dst then chooses the one
-			has the max available BW. 
+			Sieve fitches the shortest 4 paths between a src and dst then chooses the one
+			has the max available BW. We indicate this option using command line arguments when 
+			we run Sieve
 		"""
 		shortest_paths = self.awareness.shortest_paths
 		# Create bandwidth-sensitive datapath graph.
 		graph = self.awareness.graph
 
-		
-		if weight == 'bw':
-			""" Because all paths will be calculated when we call self.monitor.get_best_path_by_bw,
-			 so we just need to call it once in a period, and then, we can get path directly.
-			 If path is existed just return it, else calculate and return it."""
+		if weight == 'weight':
+			return shortest_paths.get(src).get(dst)[0],shortest_paths.get(src).get(dst)[1]
+		elif weight == 'bw':
+			# Because all paths will be calculated when we call self.monitor.get_best_path_by_bw,
+			# so we just need to call it once in a period, and then, we can get path directly.
+			# If path is existed just return it, else calculate and return it.
 			try:
-                                path = self.monitor.best_paths.get(src).get(dst)
-                                
-                                
-                            
-                                        
+                            #path = self.monitor.best_paths.get(src).get(dst)
+                                r=random.randint(0,1)
+                                if r==0:
+                                        ele = shortest_paths.get(src).get(dst)[0]
+                                        mice = shortest_paths.get(src).get(dst)[1]
+                                        r=r+1
+                                if r==1:
+                                        ele = shortest_paths.get(src).get(dst)[2]
+                                        mice = shortest_paths.get(src).get(dst)[3]
+                                        r=r+1
 
-                                return path
+                                #return path
+                                return ele,mice
 			except:
 				result = self.monitor.get_best_path_by_bw(graph, shortest_paths)    #get_best_path_by_portbw(dpid,graph,path,speed)
 				paths = result[1]
+                                #print('result 0',result[0])    #result 0:bandwidth of link
+                                #print('result 1',len(result[1]))
 				best_path = paths.get(src).get(dst)
                                 
-                        
-                                return best_path
+                                #ele = shortest_paths.get(src).get(dst)[0]
+                                #mice = shortest_paths.get(src).get(dst)[1]
+                                r=random.randint(0,1)
+                                if r==0:
+                                        ele = shortest_paths.get(src).get(dst)[0]
+                                        mice = shortest_paths.get(src).get(dst)[1]
+                                        r=r+1
+                                if r==1:
+                                        ele = shortest_paths.get(src).get(dst)[2]
+                                        mice = shortest_paths.get(src).get(dst)[3]
+                                        r=r+1
+
+
+                                #return best_path
+                                return ele,mice
 		else:
 			pass
        
@@ -248,7 +297,7 @@ class ShortestForwarding(app_manager.RyuApp):
 		actions.append(parser.OFPActionOutput(dst_port))
 		if len(flow_info) == 9:
 			#print("IT IS 9 FEILDS")
-			if flow_info[-5] == 6:
+			if flow_info[-5] == 6 and flow_info[-1] != 8000:
 				if flow_info[-4] == 'src':
 					if flow_info[-2] == 'dst':
 						match = parser.OFPMatch(
@@ -259,7 +308,7 @@ class ShortestForwarding(app_manager.RyuApp):
 					pass
                         
                         
-                        if flow_info[-5] == 6:
+                        if flow_info[-5] == 6 and flow_info[-1] == 8000:
                                 if flow_info[-4] == 'src':
                                         if flow_info[-2] == 'dst':
                                                 match = parser.OFPMatch(
@@ -277,15 +326,19 @@ class ShortestForwarding(app_manager.RyuApp):
 				else:
 					pass
 		elif len(flow_info) == 4:
+			#print("IT IS 4 FEILDS")
 			match = parser.OFPMatch(
 						in_port=src_port, eth_type=flow_info[0],
 						ipv4_src=flow_info[1], ipv4_dst=flow_info[2])
 		else:
 			pass
 		#if we need to modify the timeout so we can do it here
-
+                if(flow_info[-1] == 8000):
+                        priority=50
+                else:
+                        priority=30
                 self.add_flow(datapath, priority, match, actions,
-					  idle_timeout=10, hard_timeout=0)
+					  idle_timeout=1000, hard_timeout=0)
 
 	def install_flow(self, datapaths, link_to_port, path, flow_info, buffer_id, data=None):
 		"""
@@ -387,7 +440,7 @@ class ShortestForwarding(app_manager.RyuApp):
 			src_sw, dst_sw = result[0], result[1]
 			if dst_sw:
 				# Path has already been calculated, just get it.
-				path = self.get_path(src_sw, dst_sw, weight=self.weight)
+				ele_path, mice_path = self.get_path(src_sw, dst_sw, weight=self.weight)
                             
 				#print "path for packet-in:", path
 				if ip_proto and dFlag and sFlag:
@@ -398,14 +451,17 @@ class ShortestForwarding(app_manager.RyuApp):
 					else:
 						pass
 					#self.logger.info("[PATH]%s<-->%s(%s Port:%d): %s" % (ip_src, ip_dst, L4_Proto, L4_port, path))
-					flow_info = (eth_type, ip_src, ip_dst, in_port, ip_proto, sFlag, L4_sport, dFlag, L4_dport)
+					e_flow_info = (eth_type, ip_src, ip_dst, in_port, ip_proto, sFlag, L4_sport, dFlag, L4_dport)
+                                        m_flow_info = (eth_type, ip_src, ip_dst, in_port, ip_proto, sFlag, L4_sport, dFlag, 8000)
 				else:
 					#self.logger.info("[PATH]%s<-->%s: %s" % (ip_src, ip_dst, path))
-					flow_info = (eth_type, ip_src, ip_dst, in_port)
+					e_flow_info = (eth_type, ip_src, ip_dst, in_port)
+                                        m_flow_info = (eth_type, ip_src, ip_dst, in_port)
 				# Install flow entries to datapaths along the path.
 				self.install_flow(self.datapaths,
 								  self.awareness.link_to_port,
-								  path, flow_info, msg.buffer_id, msg.data)
+								  ele_path, e_flow_info, msg.buffer_id, msg.data)
+                                self.install_flow(self.datapaths,self.awareness.link_to_port,mice_path,m_flow_info,msg.buffer_id,msg.data)
 		else:
 			# Flood the packet out of the remaining ports in case we can not get information of src, dst datapath
 			self.flood(msg)

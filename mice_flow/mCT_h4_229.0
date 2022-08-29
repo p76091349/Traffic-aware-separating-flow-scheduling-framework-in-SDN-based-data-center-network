@@ -1,0 +1,14 @@
+--2022-08-12 14:21:41--  http://10.6.0.2:8000/
+Connecting to 10.6.0.2:8000... failed: Connection timed out.
+Retrying.
+
+--2022-08-12 14:23:53--  (try: 2)  http://10.6.0.2:8000/
+Connecting to 10.6.0.2:8000... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: 11326 (11K) [text/html]
+Saving to: ‘index.html.126.15’
+
+     0K .......... .                                          100% 1.55M=0.007s
+
+2022-08-12 14:23:53 (1.55 MB/s) - ‘index.html.126.15’ saved [11326/11326]
+

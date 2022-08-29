@@ -1,0 +1,7 @@
+------------------------------------------------------------
+Server listening on UDP port 40000
+Receiving 1470 byte datagrams
+UDP buffer size:  208 KByte (default)
+------------------------------------------------------------
+[  3] local 10.2.0.2 port 40000 connected with 10.8.0.2 port 46198
+[  4] local 10.2.0.2 port 40000 connected with 10.8.0.2 port 46053

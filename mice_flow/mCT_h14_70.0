@@ -1,0 +1,25 @@
+--2022-08-12 13:45:50--  http://10.1.0.2:8000/
+Connecting to 10.1.0.2:8000... connected.
+HTTP request sent, awaiting response... Read error (Connection reset by peer) in headers.
+Retrying.
+
+--2022-08-12 13:46:00--  (try: 2)  http://10.1.0.2:8000/
+Connecting to 10.1.0.2:8000... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: 11326 (11K) [text/html]
+Saving to: ‘index.html.10.10’
+
+     0K .........                                              87%  523 =19s
+
+2022-08-12 14:01:25 (523 B/s) - Read error at byte 9965/11326 (Connection timed out). Retrying.
+
+--2022-08-12 14:01:27--  (try: 3)  http://10.1.0.2:8000/
+Connecting to 10.1.0.2:8000... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: 11326 (11K) [text/html]
+Saving to: ‘index.html.10.10’
+
+     0K .......... .                                          100% 1.51M=0.007s
+
+2022-08-12 14:01:27 (1.51 MB/s) - ‘index.html.10.10’ saved [11326/11326]
+

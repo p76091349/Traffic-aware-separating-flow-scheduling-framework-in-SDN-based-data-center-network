@@ -176,16 +176,13 @@ class NetworkMonitor(app_manager.RyuApp):
                        #         print([stat.match.get('ipv4_src'), stat.match.get('ipv4_dst'), stat.priority])
  
 
-			for stat in sorted([flow for flow in body if ((flow.priority not in [0, 1000, 10, 65535]) and (flow.instructions[0].actions[0].port == self.sw_out_inf[dpid]) and flow.byte_count > 50 and flow.match.get('tcp_src'))],
+			for stat in sorted([flow for flow in body if ((flow.priority not in [0, 1000, 10, 65535]) and (flow.instructions[0].actions[0].port == self.sw_out_inf[dpid]) and flow.packet_count > 50 and flow.match.get('tcp_src'))],
 							   key=lambda flow: (flow.priority, flow.match.get('ipv4_src'), flow.match.get('ipv4_dst'))):
 				key2 = (dpid, stat.instructions[0].actions[0].port,stat.byte_count)
 				# creating a list of the detected elephant flows
                                 
 				paths.append([stat.match.get('eth_type'), stat.match.get('in_port'), stat.match.get('ipv4_src'), stat.match.get('ipv4_dst'), stat.match.get('tcp_src'), stat.match.get('tcp_dst'), stat.priority])
-                                for i in range(0,len(key2)):
-                                        self.get_path_by_fqouta(dpid, flow_port[key2][i][1], 2048, flow_port[key2][i][2], flow_port[key2][i][3], flow_port[key2][i][4], flow_port[key2][i][5], 30, key2[1], self.free_bandwidth[dpid][self.sw_out_inf[dpid]], self.redir_flow_num)
-	
-
+ 
                            
                         
 			if key2 and key1 == None:

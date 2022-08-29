@@ -1,0 +1,7 @@
+--2022-08-12 16:53:14--  http://10.5.0.1:8000/
+Connecting to 10.5.0.1:8000... connected.
+HTTP request sent, awaiting response... Read error (Connection timed out) in headers.
+Retrying.
+
+--2022-08-12 17:08:30--  (try: 2)  http://10.5.0.1:8000/
+Connecting to 10.5.0.1:8000... failed: Network is unreachable.

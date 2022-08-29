@@ -1,0 +1,19 @@
+--2022-08-12 13:33:54--  http://10.1.0.2:8000/
+Connecting to 10.1.0.2:8000... failed: Connection timed out.
+Retrying.
+
+--2022-08-12 13:36:05--  (try: 2)  http://10.1.0.2:8000/
+Connecting to 10.1.0.2:8000... connected.
+HTTP request sent, awaiting response... Read error (Connection reset by peer) in headers.
+Retrying.
+
+--2022-08-12 13:39:05--  (try: 3)  http://10.1.0.2:8000/
+Connecting to 10.1.0.2:8000... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: 11326 (11K) [text/html]
+Saving to: ‘index.html.13.18’
+
+     0K .......... .                                          100% 1.54M=0.007s
+
+2022-08-12 13:39:05 (1.54 MB/s) - ‘index.html.13.18’ saved [11326/11326]
+

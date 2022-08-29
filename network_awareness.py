@@ -1,4 +1,27 @@
-
+# Copyright (C) 2021 Maiass Zaher at Budapest University 
+# of Technology and Economics, Budapest, Hungary.
+# Copyright (C) 2016 Li Cheng at Beijing University of Posts
+# and Telecommunications.
+# Copyright (C) 2016 Huang MaChi at Chongqing University
+# of Posts and Telecommunications, China.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+# implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+"""
+The main purpose of this module is discovering the network topology,
+and represent it into a graph. In addition, to discover new events like
+when a node or link goes down or added. Besides, this module invokes the shortest path
+function provided by networkx API.
+"""
 import networkx as nx
 import matplotlib.pyplot as plt
 import time
@@ -232,7 +255,11 @@ class NetworkAwareness(app_manager.RyuApp):
 			self.access_ports[sw] = all_port_table - interior_port
 			
 	def create_access_table(self, fanout):
-		
+		"""
+			Create access table ungracefully, because silent hosts can't be found in Hedera.
+			In fact, this should be done automatically. (hmc)
+			self.access_table = {(sw,port):(ip, mac),}
+		"""
 		table = {}
 		num = 1
 		k = 1

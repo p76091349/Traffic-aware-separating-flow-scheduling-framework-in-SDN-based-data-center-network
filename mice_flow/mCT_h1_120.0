@@ -1,0 +1,12 @@
+--2022-08-12 16:09:42--  http://10.1.0.1:8000/
+Connecting to 10.1.0.1:8000... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: 11326 (11K) [text/html]
+Saving to: ‘index.html.66.6’
+
+     0K .                                                      11% 75.6M=0s
+
+2022-08-12 16:25:15 (75.6 MB/s) - Read error at byte 1277/11326 (Connection timed out). Retrying.
+
+--2022-08-12 16:25:16--  (try: 2)  http://10.1.0.1:8000/
+Connecting to 10.1.0.1:8000... failed: Network is unreachable.

@@ -1,0 +1,20 @@
+--2022-08-12 13:47:50--  http://10.1.0.2:8000/
+Connecting to 10.1.0.2:8000... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: 11326 (11K) [text/html]
+Saving to: ‘index.html.26.1’
+
+     0K ....                                                   51%  839 =6.9s
+
+2022-08-12 14:03:04 (839 B/s) - Read error at byte 5792/11326 (Connection timed out). Retrying.
+
+--2022-08-12 14:03:05--  (try: 2)  http://10.1.0.2:8000/
+Connecting to 10.1.0.2:8000... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: 11326 (11K) [text/html]
+Saving to: ‘index.html.26.1’
+
+     0K .......... .                                          100% 1.51M=0.007s
+
+2022-08-12 14:03:05 (1.51 MB/s) - ‘index.html.26.1’ saved [11326/11326]
+

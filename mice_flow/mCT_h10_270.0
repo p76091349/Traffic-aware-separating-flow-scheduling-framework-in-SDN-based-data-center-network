@@ -1,0 +1,10 @@
+--2022-08-12 17:07:53--  http://10.1.0.2:8000/
+Connecting to 10.1.0.2:8000... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: 11326 (11K) [text/html]
+Saving to: ‘index.html.249.8’
+
+     0K .......... .                                          100%  215K=0.05s
+
+2022-08-12 17:07:55 (215 KB/s) - ‘index.html.249.8’ saved [11326/11326]
+

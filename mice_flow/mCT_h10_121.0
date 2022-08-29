@@ -1,0 +1,9 @@
+--2022-08-12 17:05:23--  http://10.1.0.2:8000/
+Connecting to 10.1.0.2:8000... connected.
+HTTP request sent, awaiting response... Read error (Connection timed out) in headers.
+Retrying.
+
+--2022-08-12 17:07:19--  (try: 2)  http://10.5.0.2:8000/
+Connecting to 10.5.0.2:8000... failed: Network is unreachable.
+2 KB/s) - ‘index.html.212.1’ saved [11326/11326]
+

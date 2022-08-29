@@ -1,0 +1,15 @@
+--2022-08-12 16:29:53--  http://10.3.0.1:8000/
+Connecting to 10.3.0.1:8000... connected.
+HTTP request sent, awaiting response... Read error (Connection timed out) in headers.
+Retrying.
+
+--2022-08-12 16:44:57--  (try: 2)  http://10.3.0.1:8000/
+Connecting to 10.3.0.1:8000... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: 11326 (11K) [text/html]
+Saving to: ‘index.html.107.19’
+
+     0K .......... .                                          100% 1.56M=0.007s
+
+2022-08-12 16:44:57 (1.56 MB/s) - ‘index.html.107.19’ saved [11326/11326]
+
