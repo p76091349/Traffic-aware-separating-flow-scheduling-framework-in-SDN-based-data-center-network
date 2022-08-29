@@ -71,11 +71,10 @@ start mininet
 ```
 cd ~/Traffic-aware-separating-flow-scheduling-framework-in-SDN-based-data-center-network
 sudo python fattree.py
+```
 ![image](https://user-images.githubusercontent.com/97156698/187156705-0cf82b50-8fe7-4be6-a3c9-0af676bf4389.png)
 ![image](https://user-images.githubusercontent.com/97156698/187156788-7b25ba17-00b6-44c0-9caf-4e6f1dea25e2.png)
 
-
-```
 
 start controller
 ```
