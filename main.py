@@ -1,5 +1,3 @@
-# Copyright (C) 2021 Maiass Zaher at Budapest University 
-# of Technology and Economics, Budapest, Hungary.
 # Copyright (C) 2016 Huang MaChi at Chongqing University
 # of Posts and Telecommunications, Chongqing, China.
 # Copyright (C) 2016 Li Cheng at Beijing University of Posts
@@ -16,13 +14,7 @@
 # implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""
-This module represents the second layer of Sieve framework. 
-It receives the packet-in messages from datapaths in data
-plane and schedule them based on max BW shortest paths.
-This layer provides its functions regardless of the flows size
-,i.e., no difference in case of mice (small) and elephant (large) flows.
-"""
+
 
 from ryu import cfg
 from ryu.base import app_manager
@@ -46,11 +38,7 @@ import random
 
 
 class ShortestForwarding(app_manager.RyuApp):
-	"""
-		ShortestForwarding is the class responsible for forwarding packets on shortest paths
-		This class employs network_awareness and network_monitors functions to collect and discover
-		network metrics and topology, respectively
-	"""
+	
 
 	OFP_VERSIONS = [ofproto_v1_3.OFP_VERSION]
 	_CONTEXTS = {
@@ -204,14 +192,7 @@ class ShortestForwarding(app_manager.RyuApp):
 			self.flood(msg)
 
 	def get_path(self, src, dst, weight):
-		"""
-			get the shortest paths between src and dst either based on hop counts
-			using the networkx generator, where the network topology is represented as a
-			graph or based on the available BW on links.
-			Sieve fitches the shortest 4 paths between a src and dst then chooses the one
-			has the max available BW. We indicate this option using command line arguments when 
-			we run Sieve
-		"""
+		
 		shortest_paths = self.awareness.shortest_paths
 		# Create bandwidth-sensitive datapath graph.
 		graph = self.awareness.graph
@@ -262,11 +243,7 @@ class ShortestForwarding(app_manager.RyuApp):
 			pass
        
 	def get_sw(self, dpid, in_port, src, dst):
-		"""
-			find the src and dst switches because Sieves computes the shortest paths
-			between src dpid and dst dpid not between src ip and dst ip since the graph
-			represents the network topology layers only: access, aggregate and core
-		"""
+		
 		src_sw = dpid
 		dst_sw = None
 		src_location = self.awareness.get_host_location(src)   # src_location = (dpid, port)
@@ -285,13 +262,7 @@ class ShortestForwarding(app_manager.RyuApp):
 			return None
 
 	def send_flow_mod(self, datapath, flow_info, src_port, dst_port):
-		"""
-			Build flow entry, and send it to datapath. Sieve uses 
-			flow_info = (eth_type, src_ip, dst_ip, in_port, ip_proto, Flag, L4_port) which is 
-			ofp_match is used to identify each flow uniquely. Besides, Sieve can deal with UDP flows.
-			action here is outport applied on match flows.
-			We set 30 as priority of the flows installed by this module with idle_timeout = 5 sec
-		"""
+		
 		parser = datapath.ofproto_parser
 		actions = []
 		actions.append(parser.OFPActionOutput(dst_port))
@@ -341,15 +312,7 @@ class ShortestForwarding(app_manager.RyuApp):
 					  idle_timeout=1000, hard_timeout=0)
 
 	def install_flow(self, datapaths, link_to_port, path, flow_info, buffer_id, data=None):
-		"""
-			Install flow entries into the datapaths of the chosen path (shortest path with
-			max BW) in path=[dpid1, dpid2, ...]
-			flow_info = (eth_type, src_ip, dst_ip, in_port) or
-			flow_info = (eth_type, ip_src, ip_dst, in_port, ip_proto, sFlag, L4_sport, dFlag, L4_dport)
-			in case of Sieve, it is 9 fields for flow matching. flow installation starts with the intermediate datapaths
-			then the first datapath to make sure that all datapaths along the path know how to forward packets otherwise
-			the packets will be sent to Sieve many time and overwhelm it.
-		"""
+		
 		if path is None or len(path) == 0:
 			self.logger.info("Path error!")
 			return
