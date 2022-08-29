@@ -1,11 +1,11 @@
 # Traffic-aware-separating-flow-scheduling-framework-in-SDN-based-data-center-network
 ## install Mininet and Ryu
-update update upgrade
+### update update upgrade
 ```
 sudo apt update
 sudo apt upgrade
 ```
-download mininet
+### download mininet
 ```
 git clone git://github.com/mininet/mininet
 cd mininet
@@ -16,7 +16,7 @@ sudo mn
 ```
 ![image](https://user-images.githubusercontent.com/97156698/187158696-1ec8159c-3e76-40f3-90a7-ab214cfdcafa.png)
 
-Install Ryu
+### Install Ryu
 ```
 pip install ryu
 sudo apt install python-pip
@@ -26,7 +26,7 @@ sudo apt-get install python-setuptools
 ryu-manager
 ```
 ![image](https://user-images.githubusercontent.com/97156698/187159396-dbb4001f-3436-4dd5-a6b5-8078143ab000.png)
-install package
+### install package
 ```
 sudo apt-get install python-eventlet
 sudo apt-get install python-routes
@@ -67,10 +67,11 @@ git clone https://github.com/p76091349/Traffic-aware-separating-flow-scheduling-
 ```
 
 ## Quick start
-choose ct, ut, md scenario
-![image](https://user-images.githubusercontent.com/97156698/187246130-636dc8eb-0729-462d-a277-cff015bec786.png)
+### choose ct, ut, md scenario
 
-start mininet
+![image](https://user-images.githubusercontent.com/97156698/187247307-5a42ebce-5aa7-422d-88c4-9e9211b1298f.png)
+
+### start mininet
 ```
 cd ~/Traffic-aware-separating-flow-scheduling-framework-in-SDN-based-data-center-network
 sudo python fattree.py
@@ -79,13 +80,13 @@ sudo python fattree.py
 ![image](https://user-images.githubusercontent.com/97156698/187156788-7b25ba17-00b6-44c0-9caf-4e6f1dea25e2.png)
 
 
-start controller
+### start controller
 ```
 ryu-manager --observe-links main.py
 ```
 ![image](https://user-images.githubusercontent.com/97156698/187157251-483f146d-ec5d-4ef4-9172-ff2eaa2f91ed.png)
 
-Collect experimental results
+### Collect experimental results
 ```
 python collectPut.py
 python wget-collect-FCT.py
