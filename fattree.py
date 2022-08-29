@@ -1,4 +1,3 @@
-
 # Copyright (C) 2016 Huang MaChi at Chongqing University
 # of Posts and Telecommunications, Chongqing, China.
 # Copyright (C) 2016 Li Cheng at Beijing University of Posts
