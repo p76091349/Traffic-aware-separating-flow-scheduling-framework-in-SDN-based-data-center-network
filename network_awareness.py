@@ -1,4 +1,3 @@
-
 # Copyright (C) 2016 Li Cheng at Beijing University of Posts
 # and Telecommunications.
 # Copyright (C) 2016 Huang MaChi at Chongqing University
