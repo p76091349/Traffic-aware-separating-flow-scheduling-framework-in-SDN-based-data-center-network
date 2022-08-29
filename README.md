@@ -67,6 +67,8 @@ git clone https://github.com/p76091349/Traffic-aware-separating-flow-scheduling-
 ```
 
 ## Quick start
+choose ct, ut, md scenario
+
 start mininet
 ```
 cd ~/Traffic-aware-separating-flow-scheduling-framework-in-SDN-based-data-center-network
@@ -81,4 +83,5 @@ start controller
 ryu-manager --observe-links main.py
 ```
 ![image](https://user-images.githubusercontent.com/97156698/187157251-483f146d-ec5d-4ef4-9172-ff2eaa2f91ed.png)
+
 
