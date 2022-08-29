@@ -1,7 +1,7 @@
 # Traffic-aware-separating-flow-scheduling-framework-in-SDN-based-data-center-network
 ## Requirement
 ```
-mininet==2.3.0\\
+mininet==2.3.0
 python==2.8.2
 scipy==1.7.3
 seaborn==0.11.2
