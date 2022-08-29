@@ -232,23 +232,19 @@ def install_proactive(net, topo):
 		# Upstream.
 		# Install group entries to define ECMP scheduling using static packet header hashing.
 		if topo.pod == 4:
-                        cmd = "ovs-ofctl add-group %s -O OpenFlow13 \
-                               'group_id=1,type=select,bucket=weight:1,actions:CONTROLLER,bucket=weight:1,actions:group:2'" % sw
+                        
                         
                         #go to controller
-                        #cmd = "ovs-ofctl add-group %s -O OpenFlow13 \
-                        #       'group_id=1,type=select,bucket=weight:1,actions:CONTROLLER'" % sw
+                        cmd = "ovs-ofctl add-group %s -O OpenFlow13 \
+                               'group_id=1,type=select,bucket=weight:1,actions:CONTROLLER'" % sw
 
-                       # #ecmp
-                       # cmd = "ovs-ofctl add-group %s -O OpenFlow13 \
-                       #       'group_id=1,type=select,bucket=weight:1,actions:group:2'" % sw
+                       
                        
                         
                         cmd1 = "ovs-ofctl add-group %s -O OpenFlow13 \
                                 'group_id=2,type=select,bucket=weight:1,output:1,bucket=weight:1,output:2'" % sw
                         
-                       # cmd1 = "ovs-ofctl add-group %s -O OpenFlow13 \
-                       #         'group_id=2,type=select,bucket=weight:1,output:1'" % sw
+                       
 
                         cmd2 = "ovs-ofctl add-group %s -O OpenFlow13\
                                 'group_id=3,type=select,bucket=weight:1,output:1,bucket=weight:1,output:2'" % sw
@@ -1936,14 +1932,13 @@ def run_experiment(pod, density, ip="127.0.0.1", port=6653, bw_c2a=10, bw_a2e=10
 	# Wait until the controller has discovered network topology.
 	time.sleep(60)
         
-	#traffic_generation(net, topo)
-        #iperfTest(net,topo)
-        #UT_Test(net,topo)
+	#choose one from ct,ut,md to start experiment
+        UT_Test(net,topo)
         #CT_Test(net,topo)
-        #test(net,topo)
-        u_my_test2(net,topo)
-        #u_my_test(net,topo)
-        #u_md_test(net,topo)
+        #md_test(net,topo)
+	
+        
+	
         CLI(net)
 	#os.killpg(Controller_Ryu.pid, signal.SIGKILL)
 	# Stop Mininet.
