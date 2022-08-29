@@ -1,4 +1,4 @@
-# Traffic-aware-separating-flow-scheduling-framework-in-SDN-based-data-center-network
+# Sieve
 ## install Mininet and Ryu
 ### update update upgrade
 ```
@@ -73,7 +73,7 @@ git clone https://github.com/p76091349/Traffic-aware-separating-flow-scheduling-
 
 ### start mininet
 ```
-cd ~/Traffic-aware-separating-flow-scheduling-framework-in-SDN-based-data-center-network
+cd ~/Traffic-aware-separating-flow-scheduling-framework-in-SDN-based-data-center-network/Sieve
 sudo python fattree.py
 ```
 ![image](https://user-images.githubusercontent.com/97156698/187156705-0cf82b50-8fe7-4be6-a3c9-0af676bf4389.png)
@@ -82,7 +82,7 @@ sudo python fattree.py
 
 ### start controller
 ```
-ryu-manager --observe-links main.py
+ryu-manager --observe-links sieve.py
 ```
 ![image](https://user-images.githubusercontent.com/97156698/187157251-483f146d-ec5d-4ef4-9172-ff2eaa2f91ed.png)
 
