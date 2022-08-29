@@ -1886,12 +1886,7 @@ def CT_Test(net,topo):
 
 
 def run_experiment(pod, density, ip="127.0.0.1", port=6653, bw_c2a=10, bw_a2e=10, bw_e2h=10):
-	"""
-		Create the network topology. Then, define the connection with the remote controller.
-		Install the proactive flow entries, set IPs and OF version.
-		Finally, run the Sieve as a module inside RYU controller, and wait until it discovers the network,
-		then, we generate different traffic patterns based on command line arguments passed.
-	"""
+	
 	# Create Topo.
 	topo = Fattree(pod, density)
 	topo.createNodes()
