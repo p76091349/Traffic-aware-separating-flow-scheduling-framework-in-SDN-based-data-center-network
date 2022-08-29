@@ -68,6 +68,7 @@ git clone https://github.com/p76091349/Traffic-aware-separating-flow-scheduling-
 
 ## Quick start
 choose ct, ut, md scenario
+![image](https://user-images.githubusercontent.com/97156698/187246130-636dc8eb-0729-462d-a277-cff015bec786.png)
 
 start mininet
 ```
@@ -84,4 +85,8 @@ ryu-manager --observe-links main.py
 ```
 ![image](https://user-images.githubusercontent.com/97156698/187157251-483f146d-ec5d-4ef4-9172-ff2eaa2f91ed.png)
 
-
+Collect experimental results
+```
+python collectPut.py
+python wget-collect-FCT.py
+```
