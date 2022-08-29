@@ -1,5 +1,3 @@
-# Copyright (C) 2021 Maiass Zaher at Budapest University 
-# of Technology and Economics, Budapest, Hungary.
 # Copyright (C) 2016 Li Cheng at Beijing University of Posts
 # and Telecommunications.
 # Copyright (C) 2016 Huang MaChi at Chongqing University
@@ -129,11 +127,7 @@ class NetworkMonitor(app_manager.RyuApp):
 
 	@set_ev_cls(ofp_event.EventOFPFlowStatsReply, MAIN_DISPATCHER)
 	def _flow_stats_reply_handler(self, ev):
-		"""
-			handler of flow statistics message replies from datapathes
-			Because the proactive flow entrys don't have 'in_port' and 'out-port' field.
-			Note: table-miss, LLDP and ARP flow entries are not what we need, just filter them.
-		"""
+		
 		body = ev.msg.body
 		dpid = ev.msg.datapath.id
 		self.stats['flow'][dpid] = body
@@ -229,12 +223,7 @@ class NetworkMonitor(app_manager.RyuApp):
 
 	@set_ev_cls(ofp_event.EventOFPPortStatsReply, MAIN_DISPATCHER)
 	def _port_stats_reply_handler(self, ev):
-		"""
-			handle port's statitic and save it in port_speed dictionary.
-			self.port_speed = {(dpid, port_no):[speed,],}
-			Note: The transmit performance and receive performance are independent of a port.
-			We calculate the load of a port only using tx_bytes.
-		"""
+		
                 all_load=0
 		body = ev.msg.body
 		dpid = ev.msg.datapath.id
@@ -463,10 +452,7 @@ class NetworkMonitor(app_manager.RyuApp):
 			return None
 			
 	def get_path(self, dpid, outgoing_inf, src, dst, weight, speed):
-		"""
-			Finding the shortest paths for the rescheduled elephant flow, then
-			invoke get_best_path_by_portbw to find the suitable one.
-		"""
+		
 		shortest_paths = self.awareness.shortest_paths
 		graph = self.awareness.graph
 		best_path = {}
@@ -493,10 +479,7 @@ class NetworkMonitor(app_manager.RyuApp):
 		dp.send_msg(mod)
 
 	def send_flow_mod(self, datapath, flow_info, src_port, dst_port):
-		""" 
-			install new flow entries for the rescheduled elephant flows
-			so that their priority is higher than the existed ones.
-		"""
+		
 		parser = datapath.ofproto_parser
 		actions = []
 		actions.append(parser.OFPActionOutput(dst_port))
