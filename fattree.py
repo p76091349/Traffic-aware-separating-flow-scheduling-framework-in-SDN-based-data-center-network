@@ -405,7 +405,7 @@ def test(net,topo):
         threads[i].start()
         threads[i].join()
 
-def my_test(net,topo):
+def CT_test(net,topo):
  # create iperf and python server
     net.get(topo.HostList[12]).cmdPrint('iperf -s -p 40000 > server_report/server_report_h13 &')
     net.get(topo.HostList[14]).cmdPrint('iperf -s -p 40000 > server_report/server_report_h15 &')
@@ -754,7 +754,7 @@ def u_my_test(net,topo):
 num_ele=0
 num_mice=0
 
-def my_test2(net,topo):
+def ut_test(net,topo):
  # create iperf and python server
     collect_mice_time=[]
     collect_ele_num=[]
@@ -1730,7 +1730,7 @@ def u_md_test(net,topo):
     generate_elephant()
 
 
-def CT_Test(net,topo):
+def Test1(net,topo):
     h001,h002,h003,h005,h007,h009,h011,h013,h014,h015,h016=net.get(topo.HostList[0],topo.HostList[1],topo.HostList[2],topo.HostList[4],topo.HostList[6],topo.HostList[8],topo.HostList[10],topo.HostList[12],topo.HostList[13],topo.HostList[14],topo.HostList[15])
     
     
@@ -1917,8 +1917,8 @@ def run_experiment(pod, density, ip="127.0.0.1", port=6653, bw_c2a=10, bw_a2e=10
 	time.sleep(60)
         
 	#choose one from ct,ut,md to start experiment
-        UT_Test(net,topo)
-        #CT_Test(net,topo)
+        ut_test(net,topo)
+        #ct_test(net,topo)
         #md_test(net,topo)
 	
         
