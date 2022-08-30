@@ -68,7 +68,7 @@ git clone https://github.com/p76091349/Traffic-aware-separating-flow-scheduling-
 
 ## Quick start
 ### choose ct, ut, md scenario
-*fattree.py
+* fattree.py
 ![image](https://user-images.githubusercontent.com/97156698/187344838-e2a79261-1c69-4bbf-aeb1-b8891c6ffc23.png)
 
 ### start mininet
