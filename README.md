@@ -68,7 +68,7 @@ git clone https://github.com/p76091349/Traffic-aware-separating-flow-scheduling-
 
 ## Quick start
 ### choose ct, ut, md scenario
-
+*fattree.py
 ![image](https://user-images.githubusercontent.com/97156698/187344838-e2a79261-1c69-4bbf-aeb1-b8891c6ffc23.png)
 
 ### start mininet
@@ -90,4 +90,14 @@ ryu-manager --observe-links main.py
 ```
 python collectPut.py
 python wget-collect-FCT.py
+```
+### error solution
+*若出現TabError: inconsistent use of tabs and spaces in indentation依下列解決方案
+*查看是哪個文件發生錯誤
+![image](https://user-images.githubusercontent.com/97156698/187348558-3d2d8122-0a1a-476f-acab-161320557c9d.png)
+*到引發錯誤的檔案解決
+```
+vim network_monitor.py
+:set expandtab
+:%ret! 4
 ```
