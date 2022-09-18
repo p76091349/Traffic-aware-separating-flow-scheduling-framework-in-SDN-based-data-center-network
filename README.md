@@ -96,6 +96,9 @@ ryu-manager --observe-links main.py
 ![image](https://user-images.githubusercontent.com/97156698/187157251-483f146d-ec5d-4ef4-9172-ff2eaa2f91ed.png)
 
 ### Collect experimental results
+* 執行完成後在mice_flow資料夾中會有mice flow的report檔案，server_report中有elephant flow的report檔案
+* 分別執行collectPut.py與wget-collect-FCT.py收集elephant flow的goodput和mice flow的FCT
+* 執行完後在同目錄中會產生Put.ods與FCT.ods分別記錄elephant flow的goodput與mice flow的FCT
 ```
 python collectPut.py
 python wget-collect-FCT.py
