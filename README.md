@@ -88,7 +88,7 @@ sudo python fattree.py
 ![image](https://user-images.githubusercontent.com/97156698/187156705-0cf82b50-8fe7-4be6-a3c9-0af676bf4389.png)
 ![image](https://user-images.githubusercontent.com/97156698/187156788-7b25ba17-00b6-44c0-9caf-4e6f1dea25e2.png)
 
-* 啟動mininet後須馬上啟動controller，中間時間不可超過0秒。
+* 啟動mininet後須馬上啟動controller，中間時間不可超過60秒。
 ### start controller
 ```
 ryu-manager --observe-links main.py
